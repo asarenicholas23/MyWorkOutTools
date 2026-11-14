@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<title>My Workout Tracker</title>
+<style>
+:root{color-scheme:dark;--bg:#0f172a;--panel:#18243a;--panel2:#202f49;--text:#f8fafc;--muted:#a8b5c9;--accent:#8bdbb0;--line:#31415c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:620px;margin:auto;padding:22px 17px 40px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.kicker{font-size:12px;color:var(--accent);font-weight:800;letter-spacing:1.4px;text-transform:uppercase}
+h1{font-size:27px;line-height:1.1;margin:7px 0 4px}.sub{color:var(--muted);font-size:13px}
+button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:10px 12px;font-weight:650;font-size:13px}
+.progress{margin:22px 0 18px;background:var(--panel);padding:16px;border:1px solid var(--line);border-radius:18px}
+.progressline{height:9px;background:#334155;border-radius:99px;overflow:hidden;margin-top:10px}.fill{height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .2s}
+.stats{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}.stats strong{color:var(--text);font-size:19px}
+.weeknav{display:flex;align-items:center;justify-content:space-between;margin:18px 0 12px}.weeknav strong{font-size:14px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:17px}
+.daybtn{padding:9px 2px;border-radius:10px;text-align:center;font-size:11px;color:var(--muted)}
+.daybtn span{display:block;font-size:14px;font-weight:800;color:var(--text);margin-bottom:3px}
+.daybtn.active{background:var(--accent);color:#10251b;border-color:var(--accent)}.daybtn.active span{color:#10251b}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:17px;margin-bottom:13px}
+.cardhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+h2{font-size:19px;margin:0 0 5px}.description{font-size:13px;color:var(--muted);margin:0}
+.tag{font-size:11px;color:var(--accent);background:#254238;padding:6px 9px;border-radius:99px;white-space:nowrap}
+.exercise{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.exercise:last-child{border-bottom:0;padding-bottom:0}
+input[type=checkbox]{appearance:none;width:23px;height:23px;flex:0 0 23px;border:2px solid #718096;border-radius:7px;margin:0}
+input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+input[type=checkbox]:checked:after{content:'✓';display:block;color:#10251b;font-weight:900;text-align:center;line-height:19px}
+.exname{font-weight:650;font-size:14px}.dose{font-size:12px;color:var(--muted);margin-top:3px}
+.done .exname{text-decoration:line-through;color:#8da09b}
+.note{color:var(--muted);font-size:12px;line-height:1.5;margin:15px 2px}
+.actions{display:flex;gap:9px;margin-top:16px}.actions button{flex:1}
+button:disabled{opacity:.35}
+footer{text-align:center;color:#718096;font-size:11px;margin-top:28px}
+@media(min-width:520px){main{padding-top:34px}.days{gap:8px}.daybtn{font-size:12px}}
+</style>
+</head>
+<body>
+<main>
+ <div class="top"><div><div class="kicker">Your training companion</div><h1>My Workout Tracker</h1><div class="sub">Build consistency, one day at a time.</div></div><div aria-hidden="true" style="font-size:30px">✦</div></div>
+ <section class="progress">
+  <div class="stats"><div><strong id="percent">0%</strong><div>Weekly completion</div></div><div style="text-align:right"><strong id="count">0/7</strong><div>Days completed</div></div></div>
+  <div class="progressline"><div class="fill" id="weekfill"></div></div>
+ </section>
+ <div class="weeknav"><button id="prev">‹ Previous</button><strong id="weeklabel">This week</strong><button id="next">Next ›</button></div>
+ <div class="days" id="days"></div>
+ <section class="card">
+  <div class="cardhead"><div><h2 id="daytitle">Monday</h2><p class="description" id="daydesc">Full-body strength</p></div><span class="tag" id="daytag">STRENGTH</span></div>
+  <div id="exercises"></div>
+  <p class="note" id="daynote"></p>
+ </section>
+ <div class="actions"><button id="reset">Reset this week</button><button id="today">Go to today</button></div>
+ <p class="note">Your ticks are saved on this phone automatically. Start gently, warm up first, and stop if you feel sharp pain. Increase repetitions gradually as the exercises become easier.</p>
+ <footer>Works offline · Progress stays on this device</footer>
+</main>
+<script>
+const plan=[
+ {name:'Monday',short:'MON',title:'Full-body strength',tag:'STRENGTH',note:'Move with control. Rest 60–90 seconds between sets. Use a chair or wall for support if needed.',items:[['Squats','3 sets × 12 reps'],['Push-ups','3 sets × 8 reps'],['Glute bridges','3 sets × 15 reps'],['Plank','3 sets × 20 seconds']]},
+ {name:'Tuesday',short:'TUE',title:'Brisk walk',tag:'CARDIO',note:'Walk at a pace that raises your breathing but still lets you speak in short sentences.',items:[['Brisk walk','20–30 minutes']]},
+ {name:'Wednesday',short:'WED',title:'Full-body strength',tag:'STRENGTH',note:'For backpack rows, use a secure backpack with a light load. Keep your back neutral.',items:[['Lunges','3 sets × 10 reps per leg'],['Incline push-ups','3 sets × 10 reps'],['Backpack rows','3 sets × 12 reps'],['Plank','3 sets × 25 seconds']]},
+ {name:'Thursday',short:'THU',title:'Brisk walk',tag:'CARDIO',note:'Keep a steady, comfortable pace. Shorten the walk if you are just starting out.',items:[['Brisk walk','20–30 minutes']]},
+ {name:'Friday',short:'FRI',title:'Full-body strength',tag:'STRENGTH',note:'Focus on good technique rather than speed. Stop a set when your form starts to break down.',items:[['Squats','3 sets × 15 reps'],['Push-ups','3 sets × 8 reps'],['Backpack rows','3 sets × 12 reps'],['Glute bridges','3 sets × 15 reps']]},
+ {name:'Saturday',short:'SAT',title:'Brisk walk',tag:'CARDIO',note:'A relaxed walk is fine. The goal is regular movement, not exhausting yourself.',items:[['Brisk walk','20–30 minutes']]},
+ {name:'Sunday',short:'SUN',title:'Rest and recovery',tag:'REST',note:'Recovery is part of training. Optional gentle stretching is fine, but no workout is required.',items:[]}
+];
+const $=id=>document.getElementById(id);
+let weekOffset=0, selectedDay=(new Date().getDay()+6)%7;
+const mondayOf=d=>{let x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x};
+const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const weekStart=()=>{let d=mondayOf(new Date());d.setDate(d.getDate()+weekOffset*7);return d};
+const storageKey=()=>`workout-v1-${dateKey(weekStart())}`;
+const load=()=>{try{return JSON.parse(localStorage.getItem(storageKey())||'{}')}catch(e){return {}}};
+const save=data=>localStorage.setItem(storageKey(),JSON.stringify(data));
+const dayDate=i=>{let d=weekStart();d.setDate(d.getDate()+i);return d};
+function completed(i){let data=load();return plan[i].items.length===0?!!data.restDone:plan[i].items.every((_,j)=>!!data[`${i}-${j}`])}
+function render(){
+ let data=load(), finished=plan.filter((_,i)=>completed(i)).length;
+ $('percent').textContent=Math.round(finished/7*100)+'%';$('count').textContent=finished+'/7';$('weekfill').style.width=(finished/7*100)+'%';
+ let start=weekStart(), end=new Date(start);end.setDate(end.getDate()+6);
+ $('weeklabel').textContent=`${start.toLocaleDateString(undefined,{day:'numeric',month:'short'})} – ${end.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}`;
+ $('prev').disabled=false;$('next').disabled=weekOffset>=0;
+ $('days').innerHTML=plan.map((p,i)=>`<button class="daybtn ${i===selectedDay?'active':''}" data-day="${i}"><span>${p.short}</span>${completed(i)?'✓':dayDate(i).getDate()}</button>`).join('');
+ document.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click',()=>{selectedDay=+b.dataset.day;render()}));
+ let p=plan[selectedDay];$('daytitle').textContent=p.name;$('daydesc').textContent=p.title;$('daytag').textContent=p.tag;$('daynote').textContent=p.note;
+ $('exercises').innerHTML=p.items.length?p.items.map((it,j)=>{let key=`${selectedDay}-${j}`,checked=!!data[key];return `<label class="exercise ${checked?'done':''}"><input type="checkbox" data-check="${key}" ${checked?'checked':''}><span><div class="exname">${it[0]}</div><div class="dose">${it[1]}</div></span></label>`}).join(''):`<div class="exercise"><span class="exname">Rest day — you're all set.</span></div>`;
+ document.querySelectorAll('[data-check]').forEach(c=>c.addEventListener('change',()=>{let d=load();d[c.dataset.check]=c.checked;save(d);render()}));
+}
+$('prev').onclick=()=>{weekOffset--;render()};
+$('next').onclick=()=>{if(weekOffset<0)weekOffset++;render()};
+$('today').onclick=()=>{weekOffset=0;selectedDay=(new Date().getDay()+6)%7;render()};
+$('reset').onclick=()=>{if(confirm('Clear all checkmarks for this week?')){localStorage.removeItem(storageKey());render()}};
+render();
+</script>
+</body></html>
